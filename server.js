@@ -2,6 +2,11 @@ var jsdom = require('jsdom'),
 	express = require('express'),
 	app = express();
 
+app.get('/', function(req,res){
+	res.send(JSON.stringify({
+		title: 'FFVB (Unofficial) API'
+	}));
+});
 app.get('/news', function(req, res){
 	jsdom.env({
 		html: 'http://ffvb.org/front/index.php?mduuseid=Mjg%3D&dsgtypid=37&page=article',

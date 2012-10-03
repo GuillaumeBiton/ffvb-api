@@ -1,5 +1,5 @@
 {
-	"name": "FFVBapi",
+	"name": "ffvb-api",
 	"version": "0.1",
 	"node": "0.8.11",
 	"engines": {
@@ -10,7 +10,7 @@
 		"express": "3.0.x",
 		"jsdom": "0.2.x"
 	},
-	"subdomain": "FFVBapi",
+	"subdomain": "ffvb-api",
 	"scripts": {
 		"start": "server.js"
 	}

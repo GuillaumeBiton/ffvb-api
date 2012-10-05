@@ -21,11 +21,13 @@ app.get('/news', function(req, res){
 				if(this.getElementsByClassName('cmsTexte3')[0] !== undefined) var author = this.getElementsByClassName('cmsTexte3')[0].innerHTML;
 				if(this.getElementsByClassName('cmsExtract1')[0] !== undefined) var resume = this.getElementsByClassName('cmsExtract1')[0].innerHTML;
 				var url = this.getElementsByClassName('cmsReadMore1')[0].href;
+				var id = url.substr(url.indexOf("actid=") + 6, url.length);
 				var img = {
 					src : 'http://www.ffvb.org' + this.getElementsByClassName('cmsThumbLeft')[0].src,
 					// alt : this.getElementsByClassName('cmsThumbLeft')[0].alt
 				}
 				news.push({
+					id: id,
 					date: date,
 					title: title,
 					author: author,

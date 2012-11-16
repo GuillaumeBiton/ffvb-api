@@ -7,7 +7,7 @@ app.get('/', function(req,res){
 		title: 'FFVB (Unofficial) API'
 	}));
 });
-app.get('/news', function(req, res){
+app.get('/uncached/news', function(req, res){
 	jsdom.env({
 		html: 'http://ffvb.org/front/index.php?mduuseid=Mjg%3D&dsgtypid=37&page=article',
 		scripts: ['http://code.jquery.com/jquery-1.8.2.min.js' ],
@@ -36,6 +36,30 @@ app.get('/news', function(req, res){
 					img: img
 				})
 			});
+			res.send(JSON.stringify(news));
+		}
+	})
+});
+app.get('/uncached/news/:id', function(req,res){
+	jsdom.env({
+		html: 'http://ffvb.org/front/index.php?mduuseid=Mw%3D%3D&dsgtypid=37&page=actu&actid=' + req.params.id,
+		scripts: ['http://code.jquery.com/jquery-1.8.2.min.js'],
+		done: function(errors, window) {
+			var $ = window.$
+			var container = $('.mduActualiteContainer')[0];
+			var title = container.getElementsByClassName('cmsTitre2')[0].innerHTML;
+			var date = container.getElementsByClassName('cmsDate1')[0].innerHTML;
+			var author = container.getElementsByClassName('cmsText3')[0].innerHTML;
+			var resume = container.getElementsByClassName('cmsExtract1')[0].innerHTML;
+			var content = container.getElementsByClassName('cmsTexte1')[0].innerHTML;
+			console.log(window)
+			var news = {
+				title: title,
+				date: date,
+				author: author,
+				resume: resume,
+				content: content
+			};
 			res.send(JSON.stringify(news));
 		}
 	})

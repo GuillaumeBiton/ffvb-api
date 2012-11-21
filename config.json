@@ -1,0 +1,8 @@
+{
+	"db": {
+		"port": 10018,
+		"host": "alex.mongohq.com",
+		"username":"www",
+		"password":"fFvB6api"
+	}
+}

@@ -1,6 +1,14 @@
 var jsdom = require('jsdom'),
 	express = require('express'),
+	mongo = require('mongodb'),
+	fs = require('fs'),
 	app = express();
+
+try {
+  config = JSON.parse(fs.readFileSync(process.cwd()+"/config.json"));
+} catch(e) {
+  console.log(e);
+}
 
 app.get('/', function(req,res){
 	res.send(JSON.stringify({
@@ -36,6 +44,17 @@ app.get('/uncached/news', function(req, res){
 					img: img
 				})
 			});
+			var db = new mongo.Db('ffvb-api', new mongo.Server(config.db.host, config.db.port, {'auto-reconnect': true}), {safe:false});
+			db.open(function(err, db) {
+				db.authenticate(config.db.username, config.db.password, function() {
+					db.collection("news", function(err, collection){
+						collection.drop();
+						collection.insert(news, {safe:true}, function(err, docs){
+							db.close();
+						})
+					})
+				})
+			})
 			res.send(JSON.stringify(news));
 		}
 	})
@@ -64,6 +83,19 @@ app.get('/uncached/news/:id', function(req,res){
 		}
 	})
 });
+app.get('/cached/news', function(req, res){
+	var db = new mongo.Db('ffvb-api', new mongo.Server(config.db.host, config.db.port, {'auto-reconnect': true}), {safe:false});
+	db.open(function(err, db) {
+		db.authenticate(config.db.username, config.db.password, function() {
+			db.collection("news", function(err, collection){
+				collection.find().toArray(function(err, docs){
+					res.send(docs);
+					db.close();
+				});
+			})
+		})
+	})
+})
 
 var port = process.env.PORT || 5000;
 app.listen(port);

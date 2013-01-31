@@ -71,7 +71,6 @@ app.get('/uncached/news/:id', function(req,res){
 			var author = container.getElementsByClassName('cmsText3')[0].innerHTML;
 			var resume = container.getElementsByClassName('cmsExtract1')[0].innerHTML;
 			var content = container.getElementsByClassName('cmsTexte1')[0].innerHTML;
-			console.log(window)
 			var news = {
 				title: title,
 				date: date,
@@ -90,6 +89,80 @@ app.get('/cached/news', function(req, res){
 			db.collection("news", function(err, collection){
 				collection.find().toArray(function(err, docs){
 					res.send(docs);
+					db.close();
+				});
+			})
+		})
+	})
+})
+app.get('/uncached/competition/:ligue/:poule', function(req, res){
+	jsdom.env({
+		html: 'http://www.ffvbbeach.org/ffvbapp/resu/vbspo_calendrier.php?saison=2012%2F2013&codent=' + req.params.ligue + '&poule=' + req.params.poule+ '&division=&tour=&calend=COMPLET',
+		scripts: ['http://code.jquery.com/jquery-1.8.2.min.js'],
+		done: function(errors, window) {
+			var $ = window.$
+			var day = 1,
+				matches = [];
+			var calendartable = $('table')[3];
+			var rows = calendartable.getElementsByTagName('tr');
+			for (var i=0; i < rows.length; i++) {
+				var cells = rows[i].getElementsByTagName('td');
+				if( cells.length == 1 ) {
+					if(matches.length != 0) day += 1;
+					continue;
+				}
+				if (cells.length > 1) {
+					var id = cells[0].innerHTML;
+					var date = cells[1].innerHTML;
+					var time = cells[2].innerHTML;
+					var home = cells[3].innerHTML;
+					var guest = cells[5].innerHTML;
+				}
+				if(cells.length == 10) {
+					var place = cells[7].innerHTML;
+					var arbitres = cells[9].innerHTML;
+					var results = null;
+				}
+				if (cells.length == 11) {
+					var results = cells[8].innerHTML;
+					var arbitres = cells[10].innerHTML;
+					var place = null;
+				}
+				matches.push({
+					id: id,
+					day: day,
+					date: date,
+					time: time,
+					home: home,
+					guest: guest,
+					place: place || null,
+					results: results || null,
+					arbitres: arbitres
+				})
+			}
+			var db = new mongo.Db('ffvb-api', new mongo.Server(config.db.host, config.db.port, {'auto-reconnect': true}), {safe:false});
+			db.open(function(err, db) {
+				db.authenticate(config.db.username, config.db.password, function() {
+					db.collection(req.params.ligue + '.' + req.params.poule, function(err, collection){
+						collection.drop();
+						collection.insert(matches, {safe:true}, function(err, docs){
+							db.close();
+						})
+					})
+				})
+			})
+			res.send(JSON.stringify(matches));
+		}
+	})
+})
+app.get('/cached/competition/:ligue/:poule', function(req, res){
+	var db = new mongo.Db('ffvb-api', new mongo.Server(config.db.host, config.db.port, {'auto-reconnect': true}), {safe:false});
+	db.open(function(err, db) {
+		db.authenticate(config.db.username, config.db.password, function() {
+			db.collection(req.params.ligue + '.' + req.params.poule, function(err, collection){
+				collection.find().toArray(function(err, docs){
+					if(docs.length == 0 ) res.redirect('/uncached/competition/' + req.params.ligue + '/' + req.params.poule);
+					else res.send(docs);
 					db.close();
 				});
 			})
